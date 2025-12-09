@@ -8,8 +8,7 @@
 #define MAX_THREADS 8
 
 int stack[MAX_SIZE];
-int top_value = -1;
-int current_size = 0;
+int top = -1;
 
 pthread_mutex_t mutex;
 
@@ -29,25 +28,24 @@ void* push(void* arg) {
         
         pthread_mutex_lock(&mutex);
 
-        if (current_size == MAX_SIZE)
+        if (top + 1 == MAX_SIZE)
         {
             printf("Thread %d failed to push into stack because of overflow\n", id);
             pthread_mutex_unlock(&mutex);
 
             act_count++;
-            usleep((rand() % 500 + 100) * 1000);
+            usleep((rand() % 500 + 500) * 1000);
             continue;
         }
         
         int number = rand() % 10 + 1;
-        stack[current_size++] = number;
-        top_value = number;
+        stack[++top] = number;
         act_count++;
 
-        printf("Thread %d pushed %d into stack | Current Size: %d\n", id, number, current_size);
+        printf("Thread %d pushed %d into stack | Current Size: %d\n", id, number, top + 1);
 
         pthread_mutex_unlock(&mutex);
-        usleep((rand() % 500 + 100) * 1000);
+        usleep((rand() % 500 + 500) * 1000);
     }
 
     return NULL;
@@ -70,33 +68,23 @@ void* pop(void* arg) {
 
         pthread_mutex_lock(&mutex);
 
-        if (current_size == 0)
+        if (top == -1)
         {
             printf("Thread %d failed to pop from stack because of underflow\n", id);
             pthread_mutex_unlock(&mutex);
 
             act_count++;
-            usleep((rand() % 500 + 100) * 1000);
+            usleep((rand() % 500 + 500) * 1000);
             continue;
         }
 
-        current_size--;
-
-        printf("Thread %d popped %d from stack | Current Size: %d\n", id, top_value, current_size);
-
-        if (current_size == 0)
-        {
-            top_value = -1;
-        }
-        else
-        {
-            top_value = stack[current_size - 1];
-        }
-
+        int val = stack[top--];
         act_count++;
 
+        printf("Thread %d popped %d from stack | Current Size: %d\n", id, val, top + 1);
+
         pthread_mutex_unlock(&mutex);
-        usleep((rand() % 500 + 100) * 1000);
+        usleep((rand() % 500 + 500) * 1000);
     }
 
     return NULL;
